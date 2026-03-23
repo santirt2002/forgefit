@@ -52,6 +52,7 @@ export function WorkoutDashboard({
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -176,14 +177,29 @@ export function WorkoutDashboard({
   async function handleAuthSubmit() {
     setIsAuthenticating(true);
     setError(null);
+    setAuthError(null);
     setAuthMessage(null);
 
     try {
+      const normalizedEmail = authEmail.trim().toLowerCase();
+
+      if (!normalizedEmail) {
+        throw new Error("Enter your email address to continue.");
+      }
+
+      if (!authPassword) {
+        throw new Error("Enter your password to continue.");
+      }
+
+      if (authPassword.length < 6) {
+        throw new Error("Your password must be at least 6 characters long.");
+      }
+
       const supabase = createSupabaseBrowserClient();
 
       if (authMode === "signup") {
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email: authEmail,
+          email: normalizedEmail,
           password: authPassword,
           options: {
             emailRedirectTo:
@@ -204,7 +220,7 @@ export function WorkoutDashboard({
         }
       } else {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email: authEmail,
+          email: normalizedEmail,
           password: authPassword
         });
 
@@ -212,14 +228,16 @@ export function WorkoutDashboard({
           throw signInError;
         }
 
-        setUserEmail(data.user.email ?? authEmail);
+        setUserEmail(data.user.email ?? normalizedEmail);
         router.refresh();
         setAuthMessage("Signed in successfully.");
       }
 
       setAuthPassword("");
     } catch (authError) {
-      setError(authError instanceof Error ? authError.message : "Authentication failed.");
+      const message = authError instanceof Error ? authError.message : "Authentication failed.";
+      setAuthError(message);
+      setError(message);
     } finally {
       setIsAuthenticating(false);
     }
@@ -227,6 +245,7 @@ export function WorkoutDashboard({
 
   async function handleSignOut() {
     setError(null);
+    setAuthError(null);
     setAuthMessage(null);
 
     try {
@@ -335,6 +354,8 @@ export function WorkoutDashboard({
                   <input
                     className="input"
                     type="email"
+                    name="email"
+                    autoComplete="email"
                     value={authEmail}
                     onChange={(event) => setAuthEmail(event.target.value)}
                     placeholder="name@example.com"
@@ -346,6 +367,8 @@ export function WorkoutDashboard({
                   <input
                     className="input"
                     type="password"
+                    name="password"
+                    autoComplete={authMode === "signup" ? "new-password" : "current-password"}
                     value={authPassword}
                     onChange={(event) => setAuthPassword(event.target.value)}
                     placeholder="At least 6 characters"
@@ -357,11 +380,13 @@ export function WorkoutDashboard({
                 <button
                   className="button button-secondary"
                   onClick={handleAuthSubmit}
-                  disabled={isAuthenticating || !authEmail || !authPassword}
+                  disabled={isAuthenticating}
                   type="button"
                 >
                   {isAuthenticating
-                    ? "Working..."
+                    ? authMode === "signup"
+                      ? "Creating account..."
+                      : "Signing in..."
                     : authMode === "signup"
                       ? "Create account"
                       : "Sign in"}
@@ -369,6 +394,7 @@ export function WorkoutDashboard({
               </div>
 
               {authMessage ? <div className="success">{authMessage}</div> : null}
+              {authError ? <div className="error auth-feedback">{authError}</div> : null}
             </div>
           ) : null}
 
