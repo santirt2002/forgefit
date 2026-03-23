@@ -203,7 +203,7 @@ export function WorkoutDashboard({
           password: authPassword,
           options: {
             emailRedirectTo:
-              typeof window !== "undefined" ? `${window.location.origin}/auth/confirm` : undefined
+              typeof window !== "undefined" ? window.location.origin : undefined
           }
         });
 
@@ -235,7 +235,12 @@ export function WorkoutDashboard({
 
       setAuthPassword("");
     } catch (authError) {
-      const message = authError instanceof Error ? authError.message : "Authentication failed.";
+      const message =
+        authError instanceof TypeError && authError.message === "Failed to fetch"
+          ? "Could not reach Supabase. Check your internet connection, your Supabase URL/key, and disable browser shields or blockers for localhost."
+          : authError instanceof Error
+            ? authError.message
+            : "Authentication failed.";
       setAuthError(message);
       setError(message);
     } finally {
