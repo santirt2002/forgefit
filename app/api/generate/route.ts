@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { createWorkoutPlan } from "@/lib/workout-generator";
+import { createWorkoutPlan, parseWorkoutRequest } from "@/lib/workout-generator";
 
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
-    const plan = createWorkoutPlan(payload);
+    const parsed = parseWorkoutRequest(payload);
+    const plan = createWorkoutPlan(parsed);
 
     return NextResponse.json({ plan });
   } catch (error) {

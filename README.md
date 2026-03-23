@@ -14,6 +14,7 @@ ForgeFit is a full-stack workout generator built with Next.js App Router, Supaba
 
 - Personalized workout form for goals, fitness level, session length, training frequency, and equipment
 - Server-side workout generation with input validation
+- Supabase Auth with user-owned workout history
 - Supabase-backed workout persistence
 - Recent workout history panel
 - Vercel-ready environment variable setup
@@ -34,8 +35,15 @@ Copy-Item .env.example .env.local
 ```
 
 4. Add your Supabase values to `.env.local`.
-5. Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor.
-6. Start the app:
+5. In Supabase Auth, enable Email provider for email/password sign-in.
+6. If you keep email confirmation enabled, update the email confirmation template to use:
+
+```text
+{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
+```
+
+7. Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor.
+8. Start the app:
 
 ```bash
 npm run dev
@@ -46,19 +54,37 @@ npm run dev
 Create a new Supabase project and add the following environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- or `NEXT_PUBLIC_SUPABASE_ANON_KEY` as a legacy fallback
 
-This project uses the service role key only in Next.js route handlers on the server to save and fetch workouts.
+This project uses Supabase Auth cookies and Row Level Security so each signed-in user can access only their own workouts.
 
 ## Deploy to Vercel
 
 1. Push this repository to GitHub.
 2. Import the repo into Vercel.
-3. Add the same three environment variables in the Vercel project settings.
+3. Add the same public Supabase environment variables in the Vercel project settings.
 4. Deploy.
 
 Vercel will detect Next.js automatically, build the app, and expose the API routes and frontend together.
+
+## Step 14: Post-deploy improvements
+
+Once the first deployment works, this is the phase where you make the app safer, more useful, and more production-ready.
+
+- Authentication: add Supabase Auth so workouts belong to real users instead of a shared table view.
+- Security: move from shared admin-style access patterns toward user-scoped access with Row Level Security policies.
+- Better workout management: let users revisit, delete, and later edit saved workouts.
+- Smarter programming: improve the workout engine with progression rules, deload weeks, and more exercise variety.
+- Product polish: add loading states, success messaging, filters, and user history controls.
+
+This repo already includes some of that polish now:
+
+- Users can create accounts, sign in, and sign out from the dashboard.
+- Workouts are stored with `user_id` ownership and protected by Supabase RLS policies.
+- Saved workout history can be viewed again from the dashboard.
+- Saved workouts can be deleted from the UI.
+- Generated plans now show coaching tips directly in the main plan card.
 
 ## Project structure
 

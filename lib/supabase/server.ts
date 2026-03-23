@@ -1,20 +1,24 @@
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/config";
 
-function getEnv(name: string) {
-  const value = process.env[name];
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
 
-  if (!value) {
-    throw new Error(`Missing environment variable: ${name}`);
-  }
-
-  return value;
-}
-
-export function createSupabaseAdminClient() {
-  return createClient(getEnv("NEXT_PUBLIC_SUPABASE_URL"), getEnv("SUPABASE_SERVICE_ROLE_KEY"), {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
+  return createServerClient(getSupabaseUrl(), getSupabasePublishableKey(), {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Route handlers and server actions can set cookies.
+        }
+      }
     }
   });
 }

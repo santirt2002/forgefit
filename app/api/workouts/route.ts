@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createWorkoutPlan, parseWorkoutRequest } from "@/lib/workout-generator";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const supabase = createSupabaseAdminClient();
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ workouts: [] });
+    }
+
     const { data, error } = await supabase
       .from("workouts")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(6);
 
@@ -32,11 +41,19 @@ export async function POST(request: Request) {
     const payload = await request.json();
     const parsed = parseWorkoutRequest(payload);
     const plan = createWorkoutPlan(parsed);
-    const supabase = createSupabaseAdminClient();
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "You must be signed in to save workouts." }, { status: 401 });
+    }
 
     const { data, error } = await supabase
       .from("workouts")
       .insert({
+        user_id: user.id,
         name: parsed.name,
         goal: parsed.goal,
         level: parsed.level,
