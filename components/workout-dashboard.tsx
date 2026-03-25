@@ -14,8 +14,11 @@ const equipmentOptions = [
   "cardio_machine"
 ];
 
+const daysPerWeekOptions = [2, 3, 4, 5, 6];
+const sessionLengthOptions = [20, 30, 40, 45, 50, 60, 75, 90, 105, 120];
+
 const defaultForm: WorkoutRequest = {
-  name: "Avery",
+  name: "",
   goal: "general_fitness",
   level: "intermediate",
   daysPerWeek: 4,
@@ -449,27 +452,32 @@ export function WorkoutDashboard({
 
             <label className="field">
               <span className="label">Days per week</span>
-              <input
-                className="input"
-                type="number"
-                min={2}
-                max={6}
+              <select
+                className="select"
                 value={form.daysPerWeek}
                 onChange={(event) => setForm({ ...form, daysPerWeek: Number(event.target.value) })}
-              />
+              >
+                {daysPerWeekOptions.map((days) => (
+                  <option key={days} value={days}>
+                    {days} days
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="field">
               <span className="label">Minutes per session</span>
-              <input
-                className="input"
-                type="number"
-                min={20}
-                max={120}
-                step={5}
+              <select
+                className="select"
                 value={form.sessionLength}
                 onChange={(event) => setForm({ ...form, sessionLength: Number(event.target.value) })}
-              />
+              >
+                {sessionLengthOptions.map((minutes) => (
+                  <option key={minutes} value={minutes}>
+                    {minutes} minutes
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="field-wide">
