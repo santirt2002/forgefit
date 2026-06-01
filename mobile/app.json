@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "ForgeFit Mobile",
+    "slug": "forgefit-mobile",
+    "scheme": "forgefit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "experiments": {
+      "typedRoutes": false,
+      "tsconfigPaths": true
+    },
+    "plugins": [
+      "expo-dev-client",
+      "expo-router"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.santirt2002.forgefit",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F4ECDD"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "df4fd1fe-f065-4fcd-9bbd-5a2b183cad33"
+      }
+    }
+  }
+}
